@@ -28,7 +28,7 @@ A key consideration in this approach is at which point in the propagation path t
 
 (a) has the strongest performance isolation and perhaps simplest to implement however it provides least amount of control to main and deviates the most from the well-understood DOM Event propagation model. As we move from (a) to (d), we are trading performance isolation in favor of richer control at the main and more alignment with existing event propagation model. We recommend against (c) because it harms the performance isolation which is a key goal of this proposal. Both (a) and (b) are acceptable choices. (d) is interesting since it gives the power to developer but this also means it comes with all the same footguns. Particularly, if the delegetated target is the window node all of these proposals will be equivalent.
 
-Proposed API
+# Proposed API
 
 ```webidl
 interface mixin EventDelegate {
