@@ -1,4 +1,4 @@
-# Input For Workers
+# Input For Workers and Worklets
 This repository contains a proposed solution for exposing user input events to the worker and worklets on the web.
 
 # Problem Definition
