@@ -1,0 +1,199 @@
+[[<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Input for Workers and Worklets</title>
+    <link rel="stylesheet" type="text/css" href="https://w3c.github.io/uievents/spec-WD.css">
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common.js' class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+        specStatus: "CG-DRAFT",
+        editors: [{
+          name:        "Navid Zolghadr",
+          url:         "https://github.com/NavidZ",
+          company:     "Google",
+          companyURL:  "https://www.google.com/"
+        },{
+          name:        "Majid Valipour",
+          url:         "https://github.com/majido",
+          company:     "Google",
+          companyURL:  "https://www.google.com/"
+        }],
+        shortName: "input-for-workers",
+        otherLinks: [{
+          key: 'Participation',
+          data: [
+              {
+                value: 'GitHub repository',
+                href: 'https://github.com/NavidZ/input-for-workers'
+              } ,{
+                value: 'File a bug / view open issues',
+                href: 'https://github.com/NavidZ/input-for-workers/issues'
+              }
+            ]
+          }],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>In this specification  we propose an event delegation scheme to workers that assumes no DOM access in workers.
+         This proposal introduces a generic event delegation mechanism that in theory works for all DOM events.
+         However to be practical we intend to first focus on enabling this for input events starting with PointerEvents.
+         This addresses key use cases and gives us a chance to prove and perfect the model while also leaving the door open
+         to enable delegation for more event types that can benefit from this capability.</p>
+    </section>
+
+    <section id='intro' class='informative'>
+      <h1>Introduction</h1>
+
+      <p>Today on the web platform only the main thread has access to the DOM elements and receives their related input events.
+         In particular, <a href="https://html.spec.whatwg.org/multipage/workers.html">web workers</a> [[HTML]] and
+         <a href="https://drafts.css-houdini.org/worklets/">worklets</a> do not have access to these.
+         If we allow workers to receive input events for a given DOM node we enable many latency sensitive applications to leverage workers.
+         As a result if developers want to do some event dependent logic like drawing on an off-screen canvas or using fetch in their worker thread
+         they need to listen to those events on the main thread and postMessage them across to the worker thread.
+         Here the worker is not only going to be blocked by the main thread to handle the events first but also suffers from the latency introduced by the extra thread hop.
+         This is particularly unfortunate for the input events where the latency is important. The following sections outlines </p>
+
+    </section>
+    <section dfn-for="EventDelegate">
+      <h1>Event delegation and Interfaces</h1>
+
+      <section>
+      <h2><code>EventDelegate</code> Interface</h2>
+
+      <pre class="idl no-link-warnings">
+dictionary EventDelegationOptions {
+  any context;
+};
+
+interface mixin EventDelegate {
+  void addEventTarget(EventTarget target, optional EventDelegationOptions option = {});
+  void removeEventTarget(EventTarget target);
+};
+
+      </pre>
+        <dl data-dfn-for="EventDelegationOptions" data-link-for=
+        "EventDelegationOptions">
+          <dt>
+            <dfn>EventDelegationOptions</dfn> dictionary
+          </dt>
+          <dd>
+            <p>
+              The options dictionary to customize how the event delegation should behaves.
+            </p>
+          </dd>
+          <dt>
+            <dfn>context</dfn> member
+          </dt>
+          <dd>
+            <p>
+              Additional information that can be passed to the event delegate as a context for the
+              delegated target.
+            </p>
+          </dd>
+        </dl>
+        <dl data-dfn-for="EventDelegate" data-link-for=
+        "EventDelegate">
+          <dt>
+            <dfn>EventDelegate</dfn> interface
+          </dt>
+          <dd>
+            <p>
+              The interface that expose the event delegation capabitilities.
+            </p>
+          </dd>
+          <dt>
+            <dfn>addEventTarget()</dfn> member
+          </dt>
+          <dd>
+            <p>
+              The `addEventTarget(<var data-type=
+            "EventTarget">target</var>, <var data-type="EventDelegationOptions"> options</var>)` adds <var>target</var> to the list of targets delegated to `EventDelegate`.
+            </p>
+          </dd> 
+          <dt>
+            <dfn>removeEventTarget()</dfn> member
+          </dt>
+          <dd>
+            <p>
+              The `removeEventTarget(<var data-type=
+            "EventTarget">target</var>)` removes <var>target</var> to the list of targets delegated to `EventDelegate`.
+            </p>
+          </dd> 
+        </dl>
+      </section>
+      <section>
+      <h2>Extensions to Worker and WorkletAnimation</h2>
+      <pre class="idl no-link-warnings">
+Worker includes EventDelegate;
+WorkletAnimation includes EventDelegate;
+      </pre>
+      </section>
+      <section>
+      <h2>Event types</h2>
+        <p>Below are the new event types that are dispatched when as a result of target event delegation.
+	<section>
+	  <h3>The <dfn><code>eventtargetadded</code> event</dfn></h3>
+	  <p>A user agent MUST fire an event named <code>eventtargetadded</code> on an </code>EventDelegate</code> when a target is being delegated to it using <a data-lt="EventDelegate">addEventTarget()</a>.
+	</section>
+	<section>
+	  <h3>The <dfn><code>eventtargetremoved</code> event</dfn></h3>
+	  <p>A user agent MUST fire an event named <code>eventtargetremoved</code> on an </code>EventDelegate</code> when a target is being removed from it using <a data-lt="EventDelegate">removeEventTarget()</a>.
+	</section>
+
+      </section>
+    </section>
+
+    <section dfn-for="Dispatching a PointerEvent to the EventDelegate">
+      <h1>Dispatching a PointerEvent to the EventDelegate</h1>
+      <p>This section is a hook on <a href="https://dom.spec.whatwg.org/#dispatching-events">dispatch event algorithm</a> in [[!HTML]].
+         User agent muse clone the dispatching event and stip all DOM refrences from it. Then it MUST fire that event at the <code>EventDelegate</code>.
+    </section>
+
+    <section class="informative">
+        <h1>Examples</h1>
+        <p>The following are example author code that demonstrates how the APIs in this specification might be used.</p>
+<pre id="example_1" class="example" title="Low latency drawing with off-screen canvas">
+<code>
+// DOM and the main thread javascript
+&lt;canvas id="canvas">&lt;/canvas>
+var worker = new Worker("worker.js");
+var canvas = document.getElementById("canvas")
+
+var handler = canvas.transferControlToOffscreen();
+worker.postMessage({canvas: handler}, [handler]);
+worker.addEventTarget(canvas);
+
+
+// worker.js
+var context;
+
+addEventListener("message", (msg) => {
+  if (msg.data.canvas)
+    context = msg.data.canvas.getContext("2d");
+});
+
+addEventListener("eventtargetadded", ({target}) => {
+  target.addEventListener("pointermove", onPointerMove);
+});
+
+addEventListener("eventtargetremoved", ({target}) => {
+  target.removeEventListener("pointermove", onPointerMove);
+});
+
+function onPointerMove(event){
+  // Use event.clientX/Y or offsetX/Y to draw things on the context.
+  context.beginPath();
+  context.arc(event.offsetX, event.offsetY, 5, 0, 2.0* Math.PI, false);
+  context.closePath();
+  context.fill();
+  context.commit();
+}
+</code>
+</pre>
+
+    </section>
+</body>
+</html>
