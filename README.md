@@ -1,5 +1,5 @@
 # Input For Workers and Worklets
-This repository contains a proposed solution for exposing user input events to the worker and worklets on the web.
+This repository contains a proposed solution and [specification](https://wicg.github.io/input-for-workers/) for exposing user input events to the worker and worklets on the web.
 
 # Problem Definition
 Today on the Web Platform only the main thread has access to the DOM elements and receives their related input events. In particular, Web Workers and Worklets do not have access to these. If we allow workers to receive input events for a given DOM node we enable many latency sensitive applications to leverage workers.
