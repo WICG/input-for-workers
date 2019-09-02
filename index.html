@@ -193,6 +193,59 @@ function onPointerMove(event){
 }
 </code>
 </pre>
+<pre id="example_2" class="example" title="Scale and rotate gestures using AnimationWorklet">
+<code>
+// DOM and the main thread javascript
+&lt;img id='target'>
+
+await CSS.animationWorklet.addModule('worklet.js');
+const target = document.getElementById('target');
+
+const rotateEffect = new KeyFrameEffect(
+   target, {rotate: ['rotate(0)', 'rotate(360deg)']}, {duration: 100, fill: 'both' }
+);
+const scaleEffect = new KeyFrameEffect(
+  target, {scale: [0, 100]}, {duration: 100, fill: 'both' }
+);
+
+// Note the worklet animation has no timeline since the animation is not time-based.
+const animation = new WorkletAnimation('scale_and_rotate', [rotateEffect, scaleEffect],  null);
+animation.play();
+
+// Delegate pointer events for target to worklet animation.
+animation.addEventTarget(target);
+
+
+// worker.js
+
+// Made up library that given pointer event sequence can compute an active gesture similar to Hammer.js
+import {Recognizer} from 'gesture_recognizer.js'
+
+
+registerAnimator('scale_and_rotate', class {
+  constructor() {
+    this.gestureRecognizer = new Recognizer();
+    this.addEventListener("eventtargetadded", (event) => {
+       for (type of ["pointerdown", "pointermove", "pointerup"])  {
+          event.target.addEventListener(type, (e) => {
+            this.gestureRecognizer.consumeEvent(e)));
+          });
+       }
+   });
+  }
+  animate(currentTime, effects) {
+    // Note that currentTime is undefined and unused.
+
+    // Get current recognized gesture value and update rotation and scale effects accordingly.
+    const gesture = this.gestureRecognizer.activeGesture;
+    if (!gesture) return;
+    effect.children[0].localTime = gesture.rotate * 100;
+    effect.children[1].localTime = gesture.scale;
+  }
+});
+</code>
+</pre>
+
 
     </section>
 </body>
