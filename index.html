@@ -60,89 +60,22 @@
     <section dfn-for="EventDelegate">
       <h1>Event delegation and Interfaces</h1>
 
-      <section>
-      <h2><code>EventDelegate</code> Interface</h2>
-
+      <h2>Extensions to the <code>Element</code> interface</h2>
       <pre class="idl no-link-warnings">
-dictionary EventDelegationOptions {
-  any context;
+partial interface Element {
+    EventTarget createPassiveMirror();
 };
-
-interface mixin EventDelegate {
-  void addEventTarget(EventTarget target, optional EventDelegationOptions option = {});
-  void removeEventTarget(EventTarget target);
-};
-
       </pre>
-        <dl data-dfn-for="EventDelegationOptions" data-link-for=
-        "EventDelegationOptions">
-          <dt>
-            <dfn>EventDelegationOptions</dfn> dictionary
-          </dt>
+      <dl data-dfn-for="Element" data-link-for="Element">
+          <dt><dfn>createPassiveMirror</dfn></dt>
           <dd>
-            <p>
-              The options dictionary to customize how the event delegation should behaves.
-            </p>
+              <p>Creates a cloneable <var>target</var> of type <code>EventTarget</code> from the <code>Element</code>.
+              This <var>target</var> can be transferred to other workers using postMessage.
+              When the <var>target</var> is created, its geometry is also sent to the agent that decides which event loop it should queue an event.
+              If the event is targetted at <var>target</var> then the event must be queued in the event loop of the agent that has the ownership of
+              the <var>target</var>.
           </dd>
-          <dt>
-            <dfn>context</dfn> member
-          </dt>
-          <dd>
-            <p>
-              Additional information that can be passed to the event delegate as a context for the
-              delegated target.
-            </p>
-          </dd>
-        </dl>
-        <dl data-dfn-for="EventDelegate" data-link-for=
-        "EventDelegate">
-          <dt>
-            <dfn>EventDelegate</dfn> interface
-          </dt>
-          <dd>
-            <p>
-              The interface that expose the event delegation capabitilities.
-            </p>
-          </dd>
-          <dt>
-            <dfn>addEventTarget()</dfn> member
-          </dt>
-          <dd>
-            <p>
-              The `addEventTarget(<var data-type=
-            "EventTarget">target</var>, <var data-type="EventDelegationOptions"> options</var>)` adds <var>target</var> to the list of targets delegated to `EventDelegate`.
-            </p>
-          </dd> 
-          <dt>
-            <dfn>removeEventTarget()</dfn> member
-          </dt>
-          <dd>
-            <p>
-              The `removeEventTarget(<var data-type=
-            "EventTarget">target</var>)` removes <var>target</var> to the list of targets delegated to `EventDelegate`.
-            </p>
-          </dd> 
-        </dl>
-      </section>
-      <section>
-      <h2>Extensions to Worker and WorkletAnimation</h2>
-      <pre class="idl no-link-warnings">
-Worker includes EventDelegate;
-WorkletAnimation includes EventDelegate;
-      </pre>
-      </section>
-      <section>
-      <h2>Event types</h2>
-        <p>Below are the new event types that are dispatched when as a result of target event delegation.
-	<section>
-	  <h3>The <dfn><code>eventtargetadded</code> event</dfn></h3>
-	  <p>A user agent MUST fire an event named <code>eventtargetadded</code> on an </code>EventDelegate</code> when a target is being delegated to it using <a data-lt="EventDelegate">addEventTarget()</a>.
-	</section>
-	<section>
-	  <h3>The <dfn><code>eventtargetremoved</code> event</dfn></h3>
-	  <p>A user agent MUST fire an event named <code>eventtargetremoved</code> on an </code>EventDelegate</code> when a target is being removed from it using <a data-lt="EventDelegate">removeEventTarget()</a>.
-	</section>
-
+      </dl>
       </section>
     </section>
 
